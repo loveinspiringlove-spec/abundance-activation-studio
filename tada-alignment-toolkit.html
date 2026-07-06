@@ -1,0 +1,916 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Abundance Alignment Studio</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Cinzel:wght@400;500&family=Jost:wght@200;300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --gold: #D4A853;
+    --gold-light: #E8C97A;
+    --gold-dim: #8B6F2E;
+    --cream: #FBF8F3;
+    --warm-white: #FDF9F3;
+    --deep: #2A0838;
+    --plum: #7A1060;
+    --mauve: #C8A0C0;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--deep);
+    color: var(--cream);
+    font-family: 'Jost', sans-serif;
+    font-weight: 300;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background:
+      radial-gradient(ellipse 100% 55% at 50% 0%, rgba(61,13,94,0.95) 0%, transparent 65%),
+      radial-gradient(ellipse 70% 50% at 80% 100%, rgba(74,0,64,0.6) 0%, transparent 60%),
+      radial-gradient(ellipse 50% 40% at 10% 60%, rgba(122,16,96,0.18) 0%, transparent 55%),
+      linear-gradient(145deg, #3D0D5E 0%, #480A52 28%, #4A0040 62%, #2A0838 100%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .grain {
+    position: fixed;
+    inset: 0;
+    opacity: 0.03;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 1;
+  }
+
+  .brand-header {
+    position: relative;
+    z-index: 20;
+    height: 48px;
+    background: linear-gradient(145deg, #3D0D5E 0%, #480A52 28%, #4A0040 62%, #2A0838 100%);
+    border-bottom: 1px solid var(--gold);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .brand-header-text {
+    font-family: 'Cinzel', serif;
+    font-size: 9px;
+    font-weight: 400;
+    letter-spacing: 0.3em;
+    color: var(--gold);
+    text-transform: uppercase;
+  }
+
+  header {
+    position: relative;
+    z-index: 10;
+    text-align: center;
+    padding: 52px 24px 38px;
+    border-bottom: 1px solid rgba(212,168,83,0.14);
+  }
+
+  h1 {
+    font-family: 'Cormorant Garamond', serif;
+    font-weight: 300;
+    font-size: clamp(36px, 7vw, 64px);
+    line-height: 1.05;
+    color: var(--warm-white);
+    margin-bottom: 16px;
+    opacity: 0;
+    animation: fadeUp 1s ease 0.2s forwards;
+  }
+
+  h1 em { font-style: italic; color: var(--gold-light); }
+
+  .subtitle {
+    font-size: 14px;
+    font-weight: 300;
+    color: rgba(253,249,243,0.48);
+    letter-spacing: 0.06em;
+    max-width: 400px;
+    margin: 0 auto 32px;
+    line-height: 1.85;
+    opacity: 0;
+    animation: fadeUp 1s ease 0.4s forwards;
+  }
+
+  nav {
+    display: flex;
+    justify-content: center;
+    gap: 6px;
+    flex-wrap: wrap;
+    opacity: 0;
+    animation: fadeUp 1s ease 0.6s forwards;
+  }
+
+  .tab {
+    background: none;
+    border: 1px solid rgba(212,168,83,0.2);
+    color: rgba(253,249,243,0.42);
+    font-family: 'Jost', sans-serif;
+    font-weight: 300;
+    font-size: 11px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    padding: 11px 26px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    border-radius: 50px;
+  }
+
+  .tab:hover { border-color: var(--gold); color: var(--gold-light); }
+  .tab.active {
+    background: rgba(212,168,83,0.1);
+    border-color: var(--gold);
+    color: var(--gold-light);
+  }
+
+  main {
+    position: relative;
+    z-index: 10;
+    max-width: 860px;
+    margin: 0 auto;
+    padding: 52px 24px 90px;
+  }
+
+  .section { display: none; }
+  .section.active { display: block; animation: fadeUp 0.45s ease forwards; }
+
+  .section-hero { text-align: center; padding-bottom: 36px; }
+
+  .ornament {
+    font-size: 18px;
+    color: var(--gold);
+    opacity: 0.5;
+    display: block;
+    margin-bottom: 18px;
+  }
+
+  .section-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-weight: 300;
+    font-size: clamp(26px, 5vw, 36px);
+    color: var(--warm-white);
+    margin-bottom: 10px;
+  }
+
+  .section-desc {
+    font-size: 13px;
+    color: rgba(253,249,243,0.4);
+    letter-spacing: 0.08em;
+    line-height: 1.9;
+  }
+
+  .gold-divider {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin: 36px 0;
+    opacity: 0.38;
+  }
+  .gold-divider::before, .gold-divider::after { content: ''; flex: 1; height: 1px; background: var(--gold); }
+  .gold-divider span { font-size: 13px; color: var(--gold); }
+
+  .btn {
+    font-family: 'Jost', sans-serif;
+    font-weight: 300;
+    font-size: 11px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    padding: 12px 28px;
+    border-radius: 50px;
+    cursor: pointer;
+    transition: all 0.25s;
+    border: 1px solid rgba(212,168,83,0.28);
+    background: transparent;
+    color: rgba(253,249,243,0.52);
+  }
+  .btn:hover { border-color: var(--gold); color: var(--gold-light); }
+  .btn-primary { background: rgba(212,168,83,0.1); border-color: var(--gold); color: var(--gold-light); }
+  .btn-primary:hover { background: rgba(212,168,83,0.18); }
+
+  /* SCRIPTING */
+  .script-container {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+  }
+  @media (max-width: 620px) { .script-container { grid-template-columns: 1fr; } }
+
+  .script-panel {
+    border: 1px solid rgba(212,168,83,0.14);
+    border-radius: 14px;
+    padding: 26px;
+    background: rgba(253,249,243,0.02);
+  }
+
+  .panel-title {
+    font-size: 10px;
+    letter-spacing: 0.26em;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin-bottom: 14px;
+  }
+
+  .script-prompt {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 17px;
+    font-style: italic;
+    color: var(--warm-white);
+    line-height: 1.5;
+    margin-bottom: 14px;
+  }
+
+  textarea {
+    width: 100%;
+    background: rgba(253,249,243,0.025);
+    border: 1px solid rgba(212,168,83,0.1);
+    border-radius: 10px;
+    color: var(--cream);
+    font-family: 'Jost', sans-serif;
+    font-weight: 300;
+    font-size: 13px;
+    line-height: 1.7;
+    padding: 14px;
+    resize: vertical;
+    min-height: 120px;
+    transition: border-color 0.2s;
+    letter-spacing: 0.02em;
+  }
+  textarea::placeholder { color: rgba(253,249,243,0.16); }
+  textarea:focus { outline: none; border-color: rgba(212,168,83,0.36); }
+
+  .day-tracker { margin-top: 36px; }
+  .day-label {
+    font-size: 10px;
+    letter-spacing: 0.28em;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin-bottom: 16px;
+  }
+  .day-dots { display: flex; flex-wrap: wrap; gap: 8px; }
+  .day-dot {
+    width: 34px; height: 34px;
+    border: 1px solid rgba(212,168,83,0.18);
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 10px;
+    color: rgba(253,249,243,0.26);
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .day-dot:hover { border-color: var(--gold); color: var(--gold); }
+  .day-dot.done { background: rgba(212,168,83,0.14); border-color: var(--gold); color: var(--gold-light); }
+  .day-dot.today { border-color: var(--gold); box-shadow: 0 0 10px rgba(212,168,83,0.28); }
+
+  /* AFFIRMATIONS */
+  .oracle-card-wrap { display: flex; justify-content: center; margin: 0 auto 32px; }
+
+  @keyframes cardPulse {
+    0%,100% { box-shadow: 0 0 50px rgba(122,16,96,0.38), 0 0 100px rgba(61,13,94,0.18), inset 0 0 30px rgba(212,168,83,0.04); }
+    50%      { box-shadow: 0 0 72px rgba(122,16,96,0.52), 0 0 130px rgba(61,13,94,0.26), inset 0 0 50px rgba(212,168,83,0.07); }
+  }
+
+  .oracle-card {
+    position: relative;
+    width: min(320px, 90vw);
+    aspect-ratio: 0.65;
+    border: 1px solid rgba(212,168,83,0.42);
+    border-radius: 22px;
+    background: linear-gradient(160deg, #480A52 0%, #3D0D5E 40%, #4A0040 100%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 36px 28px;
+    animation: cardPulse 4s ease-in-out infinite;
+    overflow: hidden;
+    cursor: pointer;
+    transition: transform 0.3s ease;
+  }
+  .oracle-card:hover { transform: translateY(-2px); }
+
+  .oracle-card-sacred {
+    position: absolute; inset: 0;
+    display: flex; align-items: center; justify-content: center;
+    opacity: 0.09; pointer-events: none;
+  }
+
+  .oracle-card-eyebrow {
+    font-size: 9px;
+    letter-spacing: 0.32em;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin-bottom: 18px;
+    position: relative; z-index: 1;
+  }
+
+  .oracle-card-text {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: clamp(17px, 3.2vw, 22px);
+    font-style: italic;
+    font-weight: 300;
+    color: var(--warm-white);
+    line-height: 1.65;
+    text-align: center;
+    position: relative; z-index: 1;
+    transition: opacity 0.4s ease;
+  }
+
+  .oracle-card-divider {
+    width: 52px; height: 1px;
+    background: linear-gradient(to right, transparent, var(--gold), transparent);
+    margin: 16px auto;
+    position: relative; z-index: 1;
+  }
+  .oracle-card-divider::after {
+    content: '✦';
+    position: absolute;
+    left: 50%; top: 50%;
+    transform: translate(-50%, -50%);
+    color: var(--gold);
+    font-size: 9px;
+    background: #3a0d50;
+    padding: 0 5px;
+  }
+
+  .affirmation-controls {
+    display: flex; align-items: center; gap: 12px;
+    flex-wrap: wrap; justify-content: center; margin-top: 8px;
+  }
+
+  .category-select {
+    background: rgba(253,249,243,0.04);
+    border: 1px solid rgba(212,168,83,0.22);
+    color: rgba(253,249,243,0.52);
+    font-family: 'Jost', sans-serif;
+    font-weight: 300; font-size: 11px;
+    letter-spacing: 0.1em;
+    padding: 11px 16px;
+    border-radius: 50px; cursor: pointer;
+  }
+  .category-select:focus { outline: none; border-color: var(--gold); }
+
+  .affirmation-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px; margin-top: 28px;
+  }
+  @media (max-width: 560px) { .affirmation-grid { grid-template-columns: 1fr; } }
+
+  .affirmation-card {
+    border: 1px solid rgba(212,168,83,0.12);
+    padding: 20px; border-radius: 12px;
+    background: rgba(253,249,243,0.02);
+    transition: border-color 0.2s; cursor: pointer;
+  }
+  .affirmation-card:hover { border-color: rgba(212,168,83,0.36); }
+
+  .aff-card-text {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 17px; font-style: italic;
+    color: var(--cream); line-height: 1.5;
+  }
+
+  .fav-btn {
+    background: none; border: none; cursor: pointer;
+    color: var(--gold-dim); font-size: 15px; padding: 4px;
+    transition: color 0.2s; margin-left: auto; margin-top: -2px; flex-shrink: 0;
+  }
+  .fav-btn.active { color: var(--gold); }
+  .fav-btn:hover { color: var(--gold-light); }
+
+  /* JOURNAL */
+  .journal-date-row {
+    display: flex; align-items: center;
+    justify-content: space-between;
+    margin-bottom: 24px; flex-wrap: wrap; gap: 12px;
+  }
+
+  .journal-date {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 21px; color: var(--gold-light); font-style: italic;
+  }
+
+  .journal-prompt-bar { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 22px; }
+
+  .prompt-chip {
+    border: 1px solid rgba(212,168,83,0.2);
+    background: none; color: rgba(253,249,243,0.4);
+    font-family: 'Jost', sans-serif; font-size: 11px;
+    letter-spacing: 0.1em; padding: 7px 14px;
+    border-radius: 50px; cursor: pointer; transition: all 0.2s;
+  }
+  .prompt-chip:hover, .prompt-chip.active {
+    border-color: var(--gold); color: var(--gold-light);
+    background: rgba(212,168,83,0.07);
+  }
+
+  .journal-prompt-display {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 19px; font-style: italic;
+    color: rgba(253,249,243,0.42);
+    margin-bottom: 14px; min-height: 28px; transition: opacity 0.3s;
+  }
+
+  .journal-textarea {
+    width: 100%;
+    background: rgba(253,249,243,0.02);
+    border: 1px solid rgba(212,168,83,0.13);
+    border-radius: 14px; color: var(--cream);
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 18px; line-height: 1.85;
+    padding: 24px; resize: none; min-height: 260px;
+    transition: border-color 0.2s; letter-spacing: 0.01em;
+  }
+  .journal-textarea::placeholder { color: rgba(253,249,243,0.14); font-style: italic; }
+  .journal-textarea:focus { outline: none; border-color: rgba(212,168,83,0.33); }
+
+  .journal-actions {
+    display: flex; justify-content: space-between;
+    align-items: center; margin-top: 14px; flex-wrap: wrap; gap: 12px;
+  }
+
+  .char-count { font-size: 11px; color: rgba(253,249,243,0.18); letter-spacing: 0.1em; }
+
+  .journal-entries { margin-top: 36px; }
+
+  .entries-label {
+    font-size: 10px; letter-spacing: 0.3em;
+    text-transform: uppercase; color: var(--gold); margin-bottom: 18px;
+  }
+
+  .entry-card {
+    border: 1px solid rgba(212,168,83,0.1);
+    border-radius: 10px; padding: 18px 20px;
+    margin-bottom: 10px; background: rgba(253,249,243,0.02);
+    cursor: pointer; transition: border-color 0.2s;
+  }
+  .entry-card:hover { border-color: rgba(212,168,83,0.28); }
+
+  .entry-meta {
+    display: flex; justify-content: space-between;
+    align-items: center; margin-bottom: 8px;
+  }
+
+  .entry-date-small {
+    font-size: 10px; letter-spacing: 0.15em;
+    color: var(--gold-dim); text-transform: uppercase;
+  }
+
+  .entry-delete {
+    background: none; border: none;
+    color: rgba(253,249,243,0.16); cursor: pointer;
+    font-size: 13px; transition: color 0.2s;
+  }
+  .entry-delete:hover { color: var(--mauve); }
+
+  .entry-preview {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 15px; color: rgba(253,249,243,0.45);
+    font-style: italic; line-height: 1.5;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+
+  .saved-section { margin-top: 36px; display: none; }
+  .saved-section.visible { display: block; }
+  .saved-empty {
+    font-size: 13px; color: rgba(253,249,243,0.22);
+    font-style: italic; text-align: center; padding: 24px 0;
+  }
+  .save-current-btn {
+    font-family: 'Jost', sans-serif; font-weight: 300;
+    font-size: 11px; letter-spacing: 0.2em; text-transform: uppercase;
+    padding: 12px 28px; border-radius: 50px; cursor: pointer;
+    transition: all 0.25s;
+    border: 1px solid rgba(212,168,83,0.28);
+    background: transparent; color: rgba(253,249,243,0.52);
+  }
+  .save-current-btn:hover { border-color: var(--gold); color: var(--gold-light); }
+  .save-current-btn.saved { border-color: var(--gold); color: var(--gold-light); background: rgba(212,168,83,0.1); }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(16px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  ::-webkit-scrollbar { width: 4px; }
+  ::-webkit-scrollbar-track { background: var(--deep); }
+  ::-webkit-scrollbar-thumb { background: var(--gold-dim); border-radius: 2px; }
+</style>
+</head>
+<body>
+<div class="grain"></div>
+
+<div class="brand-header">
+  <span class="brand-header-text">✦ The Art of Divine Alignment ✦</span>
+</div>
+
+<header>
+  <h1>Abundance<br><em>Alignment Studio</em></h1>
+  <p class="subtitle">A private space to tune in, align your energy,<br>and open to the flow of all you desire.</p>
+  <nav>
+    <button class="tab active" onclick="showSection('scripting', this)">Scripting</button>
+    <button class="tab" onclick="showSection('affirmations', this)">Affirmations</button>
+    <button class="tab" onclick="showSection('journal', this)">Journal</button>
+  </nav>
+</header>
+
+<main>
+
+  <!-- SCRIPTING -->
+  <div id="scripting" class="section active">
+    <div class="section-hero">
+      <span class="ornament">✦</span>
+      <h2 class="section-title">Daily Scripting Practice</h2>
+      <p class="section-desc">Write your story as if it has already happened.<br>17 days builds unstoppable momentum.</p>
+    </div>
+
+    <div class="script-container">
+      <div class="script-panel">
+        <div class="panel-title">I Am in Deep Appreciation For</div>
+        <p class="script-prompt">"I am so happy and grateful now that…"</p>
+        <textarea placeholder="Write freely. Feel the truth of these words as you speak them…"></textarea>
+      </div>
+      <div class="script-panel">
+        <div class="panel-title">My Desired Reality</div>
+        <p class="script-prompt">"In my reality, it is completely natural that…"</p>
+        <textarea placeholder="Describe your life as if the manifestation has already occurred…"></textarea>
+      </div>
+      <div class="script-panel">
+        <div class="panel-title">I Am Releasing</div>
+        <p class="script-prompt">"I am gently releasing the belief that…"</p>
+        <textarea placeholder="Name what no longer serves you, with compassion…"></textarea>
+      </div>
+      <div class="script-panel">
+        <div class="panel-title">I Trust the Flow</div>
+        <p class="script-prompt">"The Universe is always working on my behalf because…"</p>
+        <textarea placeholder="Evidence from your life that Source has your back…"></textarea>
+      </div>
+    </div>
+
+    <div class="day-tracker">
+      <div class="day-label">17-Day Momentum Tracker</div>
+      <div class="day-dots" id="dayDots"></div>
+    </div>
+  </div>
+
+  <!-- AFFIRMATIONS -->
+  <div id="affirmations" class="section">
+    <div class="section-hero">
+      <span class="ornament">✦</span>
+      <h2 class="section-title">Abundance Affirmations</h2>
+      <p class="section-desc">Speak these aloud. Feel into each one.<br>Let the words reshape your vibration.</p>
+    </div>
+
+    <div class="oracle-card-wrap">
+      <div class="oracle-card" onclick="nextAffirmation()">
+        <div class="oracle-card-sacred">
+          <svg viewBox="0 0 200 200" width="200" height="200" xmlns="http://www.w3.org/2000/svg">
+            <g stroke="#D4A853" stroke-width="0.6" fill="none">
+              <circle cx="100" cy="100" r="30"/>
+              <circle cx="100" cy="70" r="30"/>
+              <circle cx="126" cy="85" r="30"/>
+              <circle cx="126" cy="115" r="30"/>
+              <circle cx="100" cy="130" r="30"/>
+              <circle cx="74" cy="115" r="30"/>
+              <circle cx="74" cy="85" r="30"/>
+            </g>
+          </svg>
+        </div>
+        <div class="oracle-card-eyebrow" id="affCat">ABUNDANCE</div>
+        <div class="oracle-card-divider"></div>
+        <div class="oracle-card-text" id="affText">Money flows to me easily, joyfully, and in abundance from expected and unexpected sources.</div>
+        <div class="oracle-card-divider"></div>
+        <div style="font-size:9px;letter-spacing:0.2em;color:rgba(212,168,83,0.38);position:relative;z-index:1;text-transform:uppercase;margin-top:4px">Tap for next</div>
+      </div>
+    </div>
+
+    <div class="affirmation-controls">
+      <select class="category-select" id="affCategorySelect" onchange="filterAffirmations()">
+        <option value="all">All Categories</option>
+        <option value="money">Money & Wealth</option>
+        <option value="love">Love & Relationships</option>
+        <option value="health">Health & Vitality</option>
+        <option value="worth">Self-Worth</option>
+        <option value="trust">Trust & Surrender</option>
+      </select>
+      <button class="btn btn-primary" onclick="nextAffirmation()">Next</button>
+      <button class="save-current-btn" id="saveAffBtn" onclick="saveCurrentAffirmation()">♡ Save</button>
+    </div>
+
+    <div class="gold-divider"><span>✦</span></div>
+    <div class="affirmation-grid" id="affGrid"></div>
+
+    <div class="saved-section" id="savedSection">
+      <div class="entries-label">Saved Affirmations</div>
+      <div class="affirmation-grid" id="savedGrid"></div>
+    </div>
+  </div>
+
+  <!-- JOURNAL -->
+  <div id="journal" class="section">
+    <div class="section-hero">
+      <span class="ornament">✦</span>
+      <h2 class="section-title">Sacred Journal</h2>
+      <p class="section-desc">A private space for your inner work.<br>Write freely. Nothing here needs to be perfect.</p>
+    </div>
+
+    <div class="journal-date-row">
+      <div class="journal-date" id="journalDateDisplay"></div>
+      <button class="btn" onclick="newJournalEntry()">+ New Entry</button>
+    </div>
+
+    <div class="journal-prompt-bar" id="journalPromptBar"></div>
+    <div class="journal-prompt-display" id="journalPromptDisplay"></div>
+
+    <textarea class="journal-textarea" id="journalTextarea"
+      placeholder="Begin writing… let the words flow without judgment."
+      oninput="updateCharCount()"></textarea>
+
+    <div class="journal-actions">
+      <span class="char-count" id="charCount">0 words</span>
+      <div style="display:flex;gap:10px">
+        <button class="btn" onclick="clearJournal()">Clear</button>
+        <button class="btn btn-primary" onclick="saveJournalEntry()">Save Entry</button>
+      </div>
+    </div>
+
+    <div class="journal-entries">
+      <div class="entries-label">Past Entries</div>
+      <div id="entriesList"></div>
+    </div>
+  </div>
+
+</main>
+
+<script>
+  // DAY TRACKER
+  function buildDayTracker() {
+    const c = document.getElementById('dayDots');
+    const saved = JSON.parse(localStorage.getItem('tada_days') || '[]');
+    for (let i = 1; i <= 17; i++) {
+      const dot = document.createElement('div');
+      dot.className = 'day-dot' + (i === 1 ? ' today' : '') + (saved.includes(i) ? ' done' : '');
+      dot.textContent = i;
+      dot.onclick = () => {
+        dot.classList.toggle('done');
+        const d = JSON.parse(localStorage.getItem('tada_days') || '[]');
+        const idx = d.indexOf(i);
+        if (idx > -1) d.splice(idx, 1); else d.push(i);
+        try { localStorage.setItem('tada_days', JSON.stringify(d)); } catch(e){}
+      };
+      c.appendChild(dot);
+    }
+  }
+
+  // AFFIRMATIONS
+  const affirmations = [
+    { cat:'money', text:'Money flows to me easily, joyfully, and in abundance from expected and unexpected sources.' },
+    { cat:'money', text:'I am a powerful attractor of wealth. My income increases constantly and consistently.' },
+    { cat:'money', text:'I am worthy of financial abundance. Prosperity is my birthright.' },
+    { cat:'money', text:'The Universe is endlessly abundant and I claim my share with love and ease.' },
+    { cat:'money', text:'I am open to receiving wealth in ways I have not yet imagined.' },
+    { cat:'money', text:'Abundance is my natural state. Money flows to me because I am in alignment.' },
+    { cat:'money', text:'Every day I am becoming more magnetic to prosperity and financial freedom.' },
+    { cat:'love',  text:'I am deeply loved, seen, and cherished. Love finds me wherever I go.' },
+    { cat:'love',  text:'My relationships are filled with joy, ease, mutual respect, and deep connection.' },
+    { cat:'love',  text:'I attract loving, kind, and expansive people into my life naturally.' },
+    { cat:'love',  text:'Love is my natural frequency. I give and receive it with ease and grace.' },
+    { cat:'love',  text:'I am worthy of a deep, joyful, soul-nourishing love.' },
+    { cat:'love',  text:'My heart is open. The right people are always drawn into my field.' },
+    { cat:'health',text:'My body is a magnificent vessel. Every cell vibrates with vitality and well-being.' },
+    { cat:'health',text:'I am in radiant health. My body knows how to heal and restore itself.' },
+    { cat:'health',text:'I give my body what it needs and it responds with energy and aliveness.' },
+    { cat:'health',text:'I am deeply connected to my body. I listen to it, love it, and trust it.' },
+    { cat:'health',text:'Vitality is my natural state. I wake each day feeling renewed and alive.' },
+    { cat:'health',text:'My body is always moving toward balance, wellness, and radiant health.' },
+    { cat:'worth', text:'I am enough. I have always been enough. My worth needs no proof.' },
+    { cat:'worth', text:'I deserve good things simply because I exist. Abundance is natural for me.' },
+    { cat:'worth', text:'I release the need for approval. My own knowing is enough.' },
+    { cat:'worth', text:'I am worthy of everything I desire. Source created me to receive.' },
+    { cat:'worth', text:'I no longer shrink to make others comfortable. I take up space with love.' },
+    { cat:'worth', text:'My value is inherent, infinite, and unconditional. Nothing can diminish it.' },
+    { cat:'worth', text:'I trust myself completely. My desires are valid. My dreams are real.' },
+    { cat:'trust', text:'The Universe always has my back. Everything is always working out for me.' },
+    { cat:'trust', text:'I trust the timing of my life. What is mine cannot miss me.' },
+    { cat:'trust', text:'I surrender the how. I hold the what and trust Source to handle the details.' },
+    { cat:'trust', text:'I am being guided. Every step I take is divinely supported.' },
+    { cat:'trust', text:'I release resistance and allow my desires to flow to me with ease.' },
+    { cat:'trust', text:'The Universe is always conspiring in my favour. I trust the unfolding.' },
+    { cat:'trust', text:'I am always in the right place at the right time. All is well.' },
+  ];
+
+  let filteredAff = [...affirmations];
+  let affIndex = 0;
+  let savedAff = JSON.parse(localStorage.getItem('tada_saved_aff') || '[]');
+
+  function filterAffirmations() {
+    const cat = document.getElementById('affCategorySelect').value;
+    filteredAff = cat === 'all' ? [...affirmations] : affirmations.filter(a => a.cat === cat);
+    affIndex = 0;
+    showAffirmation();
+    buildAffGrid();
+  }
+
+  function showAffirmation() {
+    const a = filteredAff[affIndex];
+    const el = document.getElementById('affText');
+    el.style.opacity = 0;
+    const catNames = { money:'Money & Wealth', love:'Love & Relationships', health:'Health & Vitality', worth:'Self-Worth', trust:'Trust & Surrender' };
+    document.getElementById('affCat').textContent = (catNames[a.cat] || 'ABUNDANCE').toUpperCase();
+    setTimeout(() => { el.textContent = a.text; el.style.opacity = 1; }, 280);
+    const btn = document.getElementById('saveAffBtn');
+    const isSaved = savedAff.some(s => s.text === a.text);
+    btn.textContent = isSaved ? '♥ Saved' : '♡ Save';
+    btn.classList.toggle('saved', isSaved);
+  }
+
+  function nextAffirmation() {
+    affIndex = (affIndex + 1) % filteredAff.length;
+    showAffirmation();
+  }
+
+  function saveCurrentAffirmation() {
+    const a = filteredAff[affIndex];
+    const idx = savedAff.findIndex(s => s.text === a.text);
+    if (idx > -1) {
+      savedAff.splice(idx, 1);
+    } else {
+      savedAff.push(a);
+    }
+    try { localStorage.setItem('tada_saved_aff', JSON.stringify(savedAff)); } catch(e){}
+    showAffirmation();
+    buildSavedGrid();
+  }
+
+  function buildAffGrid() {
+    const grid = document.getElementById('affGrid');
+    grid.innerHTML = '';
+    filteredAff.slice(0, 6).forEach(a => {
+      const isSaved = savedAff.some(s => s.text === a.text);
+      const card = document.createElement('div');
+      card.className = 'affirmation-card';
+      card.innerHTML = `<div style="display:flex;align-items:flex-start;gap:8px">
+        <div class="aff-card-text">${a.text}</div>
+        <button class="fav-btn ${isSaved ? 'active' : ''}" onclick="toggleSaveFromGrid('${a.text.replace(/'/g,"\\'")}', this);event.stopPropagation()">${isSaved ? '♥' : '♡'}</button>
+      </div>`;
+      card.onclick = () => {
+        affIndex = filteredAff.indexOf(a);
+        showAffirmation();
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      };
+      grid.appendChild(card);
+    });
+  }
+
+  function toggleSaveFromGrid(text, btn) {
+    const a = affirmations.find(a => a.text === text);
+    if (!a) return;
+    const idx = savedAff.findIndex(s => s.text === text);
+    if (idx > -1) { savedAff.splice(idx, 1); btn.textContent = '♡'; btn.classList.remove('active'); }
+    else { savedAff.push(a); btn.textContent = '♥'; btn.classList.add('active'); }
+    try { localStorage.setItem('tada_saved_aff', JSON.stringify(savedAff)); } catch(e){}
+    buildSavedGrid();
+    showAffirmation();
+  }
+
+  function buildSavedGrid() {
+    const section = document.getElementById('savedSection');
+    const grid = document.getElementById('savedGrid');
+    if (!savedAff.length) { section.classList.remove('visible'); return; }
+    section.classList.add('visible');
+    grid.innerHTML = savedAff.map(a => `
+      <div class="affirmation-card">
+        <div style="display:flex;align-items:flex-start;gap:8px">
+          <div class="aff-card-text">${a.text}</div>
+          <button class="fav-btn active" onclick="toggleSaveFromGrid('${a.text.replace(/'/g,"\\'")}', this);event.stopPropagation()">♥</button>
+        </div>
+      </div>`).join('');
+  }
+
+  // JOURNAL
+  const journalPrompts = [
+    { label:'Appreciation', text:'Today I am in deep appreciation for…' },
+    { label:'Desires',      text:'What I truly want in my life is…' },
+    { label:'Releasing',    text:'I am ready to release the belief that…' },
+    { label:'Evidence',     text:'Evidence that the Universe supports me…' },
+    { label:'Future Self',  text:'My future self is writing back to tell me…' },
+    { label:'Free Write',   text:'Right now, I feel…' },
+  ];
+
+  let journalEntries = JSON.parse(localStorage.getItem('tada_journal') || '[]');
+  let activePromptIdx = null;
+
+  function initJournal() {
+    const d = new Date();
+    document.getElementById('journalDateDisplay').textContent =
+      d.toLocaleDateString('en-US', { weekday:'long', month:'long', day:'numeric', year:'numeric' });
+    const bar = document.getElementById('journalPromptBar');
+    journalPrompts.forEach((p, i) => {
+      const chip = document.createElement('button');
+      chip.className = 'prompt-chip';
+      chip.textContent = p.label;
+      chip.onclick = () => selectPrompt(i, chip);
+      bar.appendChild(chip);
+    });
+    renderEntries();
+  }
+
+  function selectPrompt(i, chip) {
+    document.querySelectorAll('.prompt-chip').forEach(c => c.classList.remove('active'));
+    if (activePromptIdx === i) {
+      activePromptIdx = null;
+      document.getElementById('journalPromptDisplay').textContent = '';
+      return;
+    }
+    activePromptIdx = i;
+    chip.classList.add('active');
+    const el = document.getElementById('journalPromptDisplay');
+    el.style.opacity = 0;
+    setTimeout(() => { el.textContent = journalPrompts[i].text; el.style.opacity = 1; }, 200);
+  }
+
+  function updateCharCount() {
+    const words = document.getElementById('journalTextarea').value.trim().split(/\s+/).filter(Boolean).length;
+    document.getElementById('charCount').textContent = words + (words === 1 ? ' word' : ' words');
+  }
+
+  function saveJournalEntry() {
+    const text = document.getElementById('journalTextarea').value.trim();
+    if (!text) return;
+    journalEntries.unshift({
+      id: Date.now(),
+      date: new Date().toLocaleDateString('en-US', { month:'short', day:'numeric', year:'numeric' }),
+      prompt: activePromptIdx !== null ? journalPrompts[activePromptIdx].label : 'Free Write',
+      text
+    });
+    try { localStorage.setItem('tada_journal', JSON.stringify(journalEntries)); } catch(e){}
+    document.getElementById('journalTextarea').value = '';
+    updateCharCount();
+    renderEntries();
+  }
+
+  function clearJournal() { document.getElementById('journalTextarea').value = ''; updateCharCount(); }
+
+  function newJournalEntry() {
+    document.getElementById('journalTextarea').value = '';
+    updateCharCount();
+    document.getElementById('journalTextarea').focus();
+  }
+
+  function deleteEntry(id) {
+    journalEntries = journalEntries.filter(e => e.id !== id);
+    try { localStorage.setItem('tada_journal', JSON.stringify(journalEntries)); } catch(e){}
+    renderEntries();
+  }
+
+  function renderEntries() {
+    const list = document.getElementById('entriesList');
+    if (!journalEntries.length) {
+      list.innerHTML = '<p style="font-size:13px;color:rgba(253,249,243,0.2);font-style:italic;">Your saved entries will appear here.</p>';
+      return;
+    }
+    list.innerHTML = journalEntries.map(e => `
+      <div class="entry-card" onclick="loadEntry(${e.id})">
+        <div class="entry-meta">
+          <span class="entry-date-small">${e.date} · ${e.prompt}</span>
+          <button class="entry-delete" onclick="deleteEntry(${e.id});event.stopPropagation()">✕</button>
+        </div>
+        <div class="entry-preview">${e.text}</div>
+      </div>`).join('');
+  }
+
+  function loadEntry(id) {
+    const e = journalEntries.find(e => e.id === id);
+    if (!e) return;
+    document.getElementById('journalTextarea').value = e.text;
+    updateCharCount();
+    document.getElementById('journalTextarea').scrollIntoView({ behavior:'smooth', block:'start' });
+  }
+
+  // NAV
+  function showSection(id, btn) {
+    document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    document.getElementById(id).classList.add('active');
+    btn.classList.add('active');
+  }
+
+  // INIT
+  buildDayTracker();
+  buildAffGrid();
+  buildSavedGrid();
+  initJournal();
+</script>
+</body>
+</html>
